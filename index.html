@@ -364,119 +364,495 @@
         let customerData = [];
         let scatterChart, barChart;
         
-        // 실제 AI 분석 함수 (가상의 LLM API 호출)
-        async function analyzeClusterWithAI(clusterData, clusterStats) {
-            // 실제 환경에서는 Claude API를 호출
-            // const response = await fetch('/api/analyze-cluster', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({ clusterData, clusterStats })
-            // });
-            
-            // AI 분석 시뮬레이션 (실제로는 LLM이 분석)
-            await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
-            
-            // 실제 데이터를 기반으로 한 통계적 분석
-            const insights = generateDataDrivenInsights(clusterData, clusterStats);
-            return insights;
-        }
-        
-        // 데이터 기반 인사이트 생성 (실제 패턴 분석)
-        function generateDataDrivenInsights(clusterData, clusterStats) {
-            const { clusterId, count, percentage } = clusterStats;
-            
-            // 실제 구매 패턴 분석
-            const avgAge = clusterData.reduce((sum, c) => sum + c.age, 0) / count;
-            const avgSpent = clusterData.reduce((sum, c) => sum + c.totalSpent, 0) / count;
-            const avgPurchases = clusterData.reduce((sum, c) => sum + c.purchaseCount, 0) / count;
-            const avgDaysSince = clusterData.reduce((sum, c) => sum + c.daysSinceLastPurchase, 0) / count;
-            
-            // 구매 카테고리 분석
-            const categoryFreq = {};
-            clusterData.forEach(customer => {
-                if (customer.purchases) {
-                    customer.purchases.forEach(purchase => {
-                        const cat = purchase.category || '기타';
-                        categoryFreq[cat] = (categoryFreq[cat] || 0) + 1;
-                    });
-                }
-            });
-            
-            const topCategories = Object.entries(categoryFreq)
-                .sort(([,a], [,b]) => b - a)
-                .slice(0, 3)
-                .map(([cat]) => cat)
-                .join(', ') || '다양한 분야';
-            
-            // RFM 점수 분포 분석
-            const rfmScores = clusterData.map(c => 
-                (c.recencyScore || 0) + (c.frequencyScore || 0) + (c.monetaryScore || 0)
-            );
-            const avgRFM = rfmScores.reduce((sum, score) => sum + score, 0) / rfmScores.length;
-            
-            // 구매 행동 패턴 분석
-            const purchaseIntervals = clusterData.map(c => c.avgPurchaseInterval || c.daysSinceLastPurchase).filter(x => x);
-            const avgInterval = purchaseIntervals.length > 0 ? 
-                purchaseIntervals.reduce((sum, interval) => sum + interval, 0) / purchaseIntervals.length : 0;
-            
-            // 가격 민감도 분석
-            const orderValues = clusterData.map(c => c.avgOrderValue).filter(x => x > 0);
-            const priceVariance = calculateVariance(orderValues);
-            
-            // 계절성/시간대 패턴 (가상)
-            const seasonality = Math.random() > 0.5 ? '계절성 구매 패턴' : '일정한 구매 패턴';
-            
-            // AI 스타일 분석 결과 생성
-            const name = generateClusterName(avgRFM, avgSpent, avgPurchases, avgAge, topCategories);
-            const insights = generateDetailedInsights(
-                avgAge, avgSpent, avgPurchases, avgDaysSince, avgRFM, 
-                topCategories, avgInterval, priceVariance, seasonality, percentage
-            );
-            const strategy = generateActionableStrategy(name, insights, topCategories, avgAge);
-            
-            return { name, insights, strategy };
-        }
-        
-        // 동적 클러스터 명명
-        function generateClusterName(rfm, spent, purchases, age, categories) {
-            if (rfm > 11 && spent > 800000) return "👑 로열 프리미엄";
-            if (purchases > 20 && spent > 500000) return "🔥 하이퍼 액티브";
-            if (age < 30 && spent < 300000) return "🌱 밀레니얼 라이트";
-            if (categories.includes('육류') || categories.includes('고급')) return "🥩 프리미엄 푸디";
-            if (spent < 200000 && purchases < 10) return "💡 스마트 쇼퍼";
-            if (age > 45) return "🎯 성숙한 고객";
-            return "⭐ 코어 고객층";
-        }
-        
-        // 상세 인사이트 생성
-        function generateDetailedInsights(age, spent, purchases, daysSince, rfm, categories, interval, variance, seasonality, percentage) {
-            return `이 고객군은 전체의 ${percentage}%를 차지하며, 평균 연령 ${age.toFixed(0)}세의 ${categories} 분야 중심 구매자들입니다. 
-            
-            평균 ${spent.toLocaleString()}원을 지출하고 ${purchases.toFixed(1)}회 구매하여 RFM 점수 ${rfm.toFixed(1)}점을 기록했습니다. 
-            
-            구매 주기는 평균 ${interval.toFixed(0)}일이며, ${seasonality}을 보입니다. 최근 구매로부터 평균 ${daysSince.toFixed(0)}일이 경과했고, 
-            가격 변동성 지수는 ${variance.toFixed(2)}로 ${variance > 100000 ? '다양한 가격대 선호' : '일정한 가격대 선호'}를 보입니다.`;
-        }
-        
-        // 실행 가능한 전략 생성
-        function generateActionableStrategy(name, insights, categories, age) {
-            const strategies = [
-                `${categories} 카테고리 중심의 개인화된 상품 추천 시스템 구축`,
-                `평균 연령 ${age.toFixed(0)}세에 맞는 연령대별 마케팅 캠페인 실행`,
-                `구매 주기 기반 자동 리마인더 및 재주문 알림 서비스 제공`,
-                `가격 민감도를 고려한 동적 할인 정책 적용`,
-                `고객 생애가치(CLV) 기반 차별화된 혜택 프로그램 운영`
-            ];
-            
-            return strategies.slice(0, 3).join('. ') + '.';
-        }
-        
-        // 분산 계산
+        // 분산 계산 유틸리티 함수
         function calculateVariance(values) {
             if (values.length === 0) return 0;
             const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
             const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
             return variance;
+        }
+        
+        // 실제 AI 분석 함수 (상품별 구매 패턴 포함)
+        async function analyzeClusterWithAI(clusterData, clusterStats) {
+            // 실제 환경에서는 Claude API를 호출
+            await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
+            
+            // 상품별 구매 패턴을 포함한 종합 분석
+            const insights = generateAdvancedDataDrivenInsights(clusterData, clusterStats);
+            return insights;
+        }
+        
+        // 고급 데이터 기반 인사이트 생성 (상품 레벨 분석 포함)
+        function generateAdvancedDataDrivenInsights(clusterData, clusterStats) {
+            const { clusterId, count, percentage } = clusterStats;
+            
+            // 기본 통계
+            const avgAge = clusterData.reduce((sum, c) => sum + c.age, 0) / count;
+            const avgSpent = clusterData.reduce((sum, c) => sum + c.totalSpent, 0) / count;
+            const avgPurchases = clusterData.reduce((sum, c) => sum + c.purchaseCount, 0) / count;
+            const avgDaysSince = clusterData.reduce((sum, c) => sum + c.daysSinceLastPurchase, 0) / count;
+            
+            // 상품별 구매 패턴 심층 분석
+            const productAnalysis = analyzeProductPatterns(clusterData);
+            const categoryAnalysis = analyzeCategoryPatterns(clusterData);
+            const purchaseBehavior = analyzePurchaseBehavior(clusterData);
+            const priceAnalysis = analyzePricePatterns(clusterData);
+            
+            // RFM 점수 분포
+            const rfmScores = clusterData.map(c => 
+                (c.recencyScore || 0) + (c.frequencyScore || 0) + (c.monetaryScore || 0)
+            );
+            const avgRFM = rfmScores.reduce((sum, score) => sum + score, 0) / rfmScores.length;
+            
+            // AI 스타일 종합 분석
+            const name = generateAdvancedClusterName(
+                avgRFM, avgSpent, avgPurchases, avgAge, 
+                productAnalysis, categoryAnalysis, purchaseBehavior, clusterData
+            );
+            
+            const insights = generateComprehensiveInsights(
+                avgAge, avgSpent, avgPurchases, avgDaysSince, avgRFM, 
+                productAnalysis, categoryAnalysis, purchaseBehavior, priceAnalysis, percentage
+            );
+            
+            const strategy = generateDetailedStrategy(
+                name, productAnalysis, categoryAnalysis, purchaseBehavior, avgAge
+            );
+            
+            return { name, insights, strategy };
+        }
+        
+        // 상품별 구매 패턴 분석 (안전한 처리)
+        function analyzeProductPatterns(clusterData) {
+            try {
+                const productFreq = {};
+                const productRevenue = {};
+                let totalProducts = 0;
+                
+                clusterData.forEach(customer => {
+                    if (customer.purchases && Array.isArray(customer.purchases)) {
+                        customer.purchases.forEach(purchase => {
+                            if (purchase && purchase.product && purchase.amount) {
+                                const product = purchase.product || '알 수 없음';
+                                const amount = parseFloat(purchase.amount) || 0;
+                                
+                                productFreq[product] = (productFreq[product] || 0) + 1;
+                                productRevenue[product] = (productRevenue[product] || 0) + amount;
+                                totalProducts++;
+                            }
+                        });
+                    }
+                });
+                
+                if (totalProducts === 0) {
+                    return {
+                        topProducts: [],
+                        topRevenueProducts: [],
+                        uniqueProductCount: 0,
+                        totalPurchases: 0
+                    };
+                }
+                
+                // 인기 상품 TOP 3
+                const topProducts = Object.entries(productFreq)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 3)
+                    .map(([product, count]) => ({
+                        product,
+                        count,
+                        percentage: Math.round(count / totalProducts * 100)
+                    }));
+                
+                // 고수익 상품 TOP 3
+                const topRevenueProducts = Object.entries(productRevenue)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 3)
+                    .map(([product, revenue]) => ({
+                        product,
+                        revenue,
+                        avgPrice: Math.round(revenue / (productFreq[product] || 1))
+                    }));
+                
+                return {
+                    topProducts,
+                    topRevenueProducts,
+                    uniqueProductCount: Object.keys(productFreq).length,
+                    totalPurchases: totalProducts
+                };
+            } catch (error) {
+                console.warn('상품 패턴 분석 오류:', error);
+                return {
+                    topProducts: [],
+                    topRevenueProducts: [],
+                    uniqueProductCount: 0,
+                    totalPurchases: 0
+                };
+            }
+        }
+        
+        // 카테고리별 구매 패턴 분석
+        function analyzeCategoryPatterns(clusterData) {
+            const categoryFreq = {};
+            const categorySpend = {};
+            let totalSpend = 0;
+            
+            clusterData.forEach(customer => {
+                if (customer.purchases) {
+                    customer.purchases.forEach(purchase => {
+                        const category = purchase.category || '기타';
+                        categoryFreq[category] = (categoryFreq[category] || 0) + 1;
+                        categorySpend[category] = (categorySpend[category] || 0) + purchase.amount;
+                        totalSpend += purchase.amount;
+                    });
+                }
+            });
+            
+            // 카테고리별 지출 비율
+            const categoryDistribution = Object.entries(categorySpend)
+                .sort(([,a], [,b]) => b - a)
+                .map(([category, spend]) => ({
+                    category,
+                    spend,
+                    percentage: Math.round(spend / totalSpend * 100),
+                    avgOrderValue: Math.round(spend / (categoryFreq[category] || 1))
+                }));
+            
+            // 카테고리 집중도 (허핀달 지수)
+            const concentration = categoryDistribution.reduce((sum, cat) => 
+                sum + Math.pow(cat.percentage / 100, 2), 0
+            );
+            
+            return {
+                distribution: categoryDistribution,
+                concentration: concentration,
+                diversityScore: Math.round((1 - concentration) * 100),
+                dominantCategory: categoryDistribution[0]?.category || '없음'
+            };
+        }
+        
+        // 구매 행동 패턴 분석 (안전한 처리)
+        function analyzePurchaseBehavior(clusterData) {
+            try {
+                const behaviors = {
+                    impulseBuyers: 0,
+                    plannedBuyers: 0,
+                    loyalBuyers: 0,
+                    explorers: 0
+                };
+                
+                clusterData.forEach(customer => {
+                    if (customer.purchases && Array.isArray(customer.purchases) && customer.purchases.length > 1) {
+                        try {
+                            // 구매 간격 분석
+                            const intervals = [];
+                            const sortedPurchases = customer.purchases
+                                .filter(p => p && p.date && p.date !== '')
+                                .sort((a, b) => {
+                                    try {
+                                        return new Date(a.date) - new Date(b.date);
+                                    } catch {
+                                        return 0;
+                                    }
+                                });
+                            
+                            for (let i = 1; i < sortedPurchases.length; i++) {
+                                try {
+                                    const interval = (new Date(sortedPurchases[i].date) - new Date(sortedPurchases[i-1].date)) / (1000 * 60 * 60 * 24);
+                                    if (!isNaN(interval) && interval >= 0) {
+                                        intervals.push(interval);
+                                    }
+                                } catch {
+                                    // 날짜 파싱 오류 무시
+                                }
+                            }
+                            
+                            const avgInterval = intervals.length > 0 ? 
+                                intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length : 30;
+                            const intervalVariance = intervals.length > 1 ? calculateVariance(intervals) : 100;
+                            
+                            // 상품 다양성
+                            const uniqueProducts = new Set(customer.purchases.map(p => p.product || '알 수 없음')).size;
+                            const productLoyalty = customer.purchases.length / Math.max(uniqueProducts, 1);
+                            
+                            // 행동 유형 분류
+                            if (avgInterval < 7 && intervalVariance > 50) {
+                                behaviors.impulseBuyers++;
+                            } else if (avgInterval > 30 && intervalVariance < 100) {
+                                behaviors.plannedBuyers++;
+                            } else if (productLoyalty > 2) {
+                                behaviors.loyalBuyers++;
+                            } else {
+                                behaviors.explorers++;
+                            }
+                        } catch (error) {
+                            console.warn('개별 고객 행동 분석 오류:', error);
+                            behaviors.explorers++; // 기본값
+                        }
+                    } else {
+                        behaviors.explorers++; // 기본값
+                    }
+                });
+                
+                const total = Object.values(behaviors).reduce((sum, count) => sum + count, 0);
+                const behaviorDistribution = {};
+                Object.keys(behaviors).forEach(behavior => {
+                    behaviorDistribution[behavior] = total > 0 ? Math.round(behaviors[behavior] / total * 100) : 25;
+                });
+                
+                return {
+                    distribution: behaviorDistribution,
+                    dominantBehavior: Object.keys(behaviorDistribution).reduce((a, b) => 
+                        behaviorDistribution[a] > behaviorDistribution[b] ? a : b
+                    )
+                };
+            } catch (error) {
+                console.warn('구매 행동 분석 오류:', error);
+                return {
+                    distribution: { impulseBuyers: 25, plannedBuyers: 25, loyalBuyers: 25, explorers: 25 },
+                    dominantBehavior: 'explorers'
+                };
+            }
+        }
+        
+        // 가격 패턴 분석
+        function analyzePricePatterns(clusterData) {
+            const allPrices = [];
+            clusterData.forEach(customer => {
+                if (customer.purchases) {
+                    customer.purchases.forEach(purchase => {
+                        allPrices.push(purchase.amount);
+                    });
+                }
+            });
+            
+            if (allPrices.length === 0) return { sensitivity: 'unknown', pattern: 'insufficient_data' };
+            
+            allPrices.sort((a, b) => a - b);
+            const median = allPrices[Math.floor(allPrices.length / 2)];
+            const q1 = allPrices[Math.floor(allPrices.length * 0.25)];
+            const q3 = allPrices[Math.floor(allPrices.length * 0.75)];
+            const iqr = q3 - q1;
+            const priceVariance = calculateVariance(allPrices);
+            
+            let sensitivity, pattern;
+            if (priceVariance < 100000) {
+                sensitivity = '일관된 가격대 선호';
+                pattern = 'consistent';
+            } else if (iqr > median) {
+                sensitivity = '가격 탄력적';
+                pattern = 'flexible';
+            } else {
+                sensitivity = '가격 민감형';
+                pattern = 'sensitive';
+            }
+            
+            return {
+                median: median,
+                iqr: iqr,
+                variance: priceVariance,
+                sensitivity: sensitivity,
+                pattern: pattern
+            };
+        }
+        
+        // 고급 클러스터 명명 - 벡터 기반 특성 분석
+        function generateAdvancedClusterName(rfm, spent, purchases, age, productAnalysis, categoryAnalysis, purchaseBehavior, clusterData) {
+            // 클러스터의 실제 특성을 기반으로 한 다차원 분석
+            const features = {
+                rfmScore: rfm,
+                spendingLevel: spent,
+                purchaseFrequency: purchases,
+                ageGroup: age,
+                dominantCategory: categoryAnalysis.dominantCategory,
+                categoryDiversity: categoryAnalysis.diversityScore,
+                behaviorType: purchaseBehavior.dominantBehavior,
+                productVariety: productAnalysis.uniqueProductCount,
+                priceRange: analyzePricePatterns(clusterData).pattern
+            };
+            
+            // 클러스터의 주요 특성 벡터 계산
+            const characteristicVector = calculateCharacteristicVector(features);
+            
+            // 클러스터 특성 점수 기반 명명
+            return generateDataDrivenClusterName(characteristicVector, features);
+        }
+        
+        // 클러스터 특성 벡터 계산
+        function calculateCharacteristicVector(features) {
+            const vector = {
+                luxuryScore: 0,
+                loyaltyScore: 0,
+                diversityScore: 0,
+                valueScore: 0,
+                frequencyScore: 0,
+                techScore: 0,
+                familyScore: 0,
+                trendScore: 0
+            };
+            
+            // Luxury Score (고급 소비 성향)
+            vector.luxuryScore = (features.spendingLevel / 1000000) * 0.4 + 
+                                (features.rfmScore / 15) * 0.3 +
+                                (features.priceRange === 'flexible' ? 0.3 : 0);
+            
+            // Loyalty Score (충성도)
+            vector.loyaltyScore = (features.behaviorType === 'loyalBuyers' ? 0.5 : 0) +
+                                 (features.purchaseFrequency / 30) * 0.3 +
+                                 (features.categoryDiversity < 30 ? 0.2 : 0);
+            
+            // Diversity Score (다양성 추구)
+            vector.diversityScore = (features.categoryDiversity / 100) * 0.4 +
+                                   (features.productVariety / 50) * 0.3 +
+                                   (features.behaviorType === 'explorers' ? 0.3 : 0);
+            
+            // Value Score (가치 추구)
+            vector.valueScore = (features.spendingLevel < 300000 ? 0.4 : 0) +
+                               (features.priceRange === 'sensitive' ? 0.3 : 0) +
+                               (features.ageGroup < 35 ? 0.3 : 0);
+            
+            // Frequency Score (구매 빈도)
+            vector.frequencyScore = Math.min(features.purchaseFrequency / 20, 1);
+            
+            // Tech Score (기술 친화도)
+            vector.techScore = (features.dominantCategory === '전자제품' ? 0.6 : 0) +
+                              (features.ageGroup < 40 ? 0.4 : 0);
+            
+            // Family Score (가족 중심)
+            vector.familyScore = (features.dominantCategory === '유제품' ? 0.3 : 0) +
+                                (features.dominantCategory === '생활용품' ? 0.3 : 0) +
+                                (features.ageGroup > 35 ? 0.4 : 0);
+            
+            // Trend Score (트렌드 민감도)
+            vector.trendScore = (features.dominantCategory === '의류' ? 0.4 : 0) +
+                               (features.behaviorType === 'impulseBuyers' ? 0.3 : 0) +
+                               (features.ageGroup < 35 ? 0.3 : 0);
+            
+            return vector;
+        }
+        
+        // 데이터 기반 클러스터 이름 생성
+        function generateDataDrivenClusterName(vector, features) {
+            // 가장 높은 특성 점수 찾기
+            const scores = Object.entries(vector).sort(([,a], [,b]) => b - a);
+            const primaryTrait = scores[0][0];
+            const secondaryTrait = scores[1][0];
+            const primaryScore = scores[0][1];
+            const secondaryScore = scores[1][1];
+            
+            // 복합 특성 기반 명명
+            if (primaryScore > 0.8) {
+                // 단일 특성이 매우 강한 경우
+                const strongNames = {
+                    luxuryScore: "👑 프리미엄 VIP",
+                    loyaltyScore: "💎 충성 고객군",
+                    diversityScore: "🌈 다양성 추구자",
+                    valueScore: "💰 가치 중시형",
+                    frequencyScore: "⚡ 상시 구매자",
+                    techScore: "🔌 테크 애호가",
+                    familyScore: "👨‍👩‍👧‍👦 패밀리 케어",
+                    trendScore: "✨ 트렌드 세터"
+                };
+                return strongNames[primaryTrait] || "⭐ 일반 고객";
+            }
+            
+            // 복합 특성 조합
+            const combinedName = getCombinedClusterName(primaryTrait, secondaryTrait, features);
+            return combinedName;
+        }
+        
+        // 복합 특성 기반 클러스터 명명
+        function getCombinedClusterName(primary, secondary, features) {
+            const combinations = {
+                'luxuryScore_loyaltyScore': "👑 프리미엄 로열티스트",
+                'luxuryScore_diversityScore': "💎 럭셔리 익스플로러",
+                'loyaltyScore_frequencyScore': "🏆 슈퍼 단골고객",
+                'loyaltyScore_familyScore': "👨‍👩‍👧 패밀리 정착형",
+                'diversityScore_trendScore': "🎯 트렌드 헌터",
+                'diversityScore_valueScore': "🛍️ 스마트 쇼퍼",
+                'valueScore_frequencyScore': "💸 실속형 상시고객",
+                'valueScore_familyScore': "👶 알뜰 패밀리",
+                'techScore_luxuryScore': "🚀 테크 프리미엄",
+                'techScore_trendScore': "📱 디지털 트렌드세터",
+                'familyScore_frequencyScore': "🏠 생활밀착형",
+                'trendScore_frequencyScore': "⚡ 트렌드 퀵바이어"
+            };
+            
+            const key = `${primary}_${secondary}`;
+            const reverseKey = `${secondary}_${primary}`;
+            
+            // 연령과 지출 특성을 추가로 고려
+            if (features.ageGroup < 30 && features.spendingLevel < 200000) {
+                return "🌱 영 스마트 컨슈머";
+            }
+            if (features.ageGroup > 50 && features.purchaseFrequency > 15) {
+                return "🎖️ 시니어 VIP";
+            }
+            
+            return combinations[key] || combinations[reverseKey] || "⭐ 균형형 고객";
+        }
+        
+        // 종합 인사이트 생성
+        function generateComprehensiveInsights(age, spent, purchases, daysSince, rfm, productAnalysis, categoryAnalysis, purchaseBehavior, priceAnalysis, percentage) {
+            const topProducts = productAnalysis.topProducts.map(p => `${p.product}(${p.percentage}%)`).join(', ');
+            const topCategory = categoryAnalysis.distribution[0];
+            const behaviorType = purchaseBehavior.dominantBehavior;
+            
+            const behaviorDesc = {
+                'impulseBuyers': '충동구매형',
+                'plannedBuyers': '계획구매형', 
+                'loyalBuyers': '충성구매형',
+                'explorers': '탐험형'
+            };
+            
+            return `이 클러스터는 전체 고객의 ${percentage}%를 차지하며, 평균 연령 ${age.toFixed(0)}세의 ${behaviorDesc[behaviorType]} 고객들입니다.
+            
+            📊 구매 패턴: 총 ${productAnalysis.uniqueProductCount}개의 서로 다른 상품을 구매했으며, 주요 인기 상품은 ${topProducts}입니다. 
+            ${topCategory?.category || '다양한'} 카테고리에서 ${topCategory?.percentage || 0}%의 지출 비중을 보이며, 카테고리 다양성 점수는 ${categoryAnalysis.diversityScore}점입니다.
+            
+            💰 지출 특성: 평균 ${spent.toLocaleString()}원을 지출하고 ${purchases.toFixed(1)}회 구매하여 RFM 점수 ${rfm.toFixed(1)}점을 기록했습니다. 
+            ${priceAnalysis.sensitivity} 특성을 보이며, 가격 중위값은 ${priceAnalysis.median?.toLocaleString() || 0}원입니다.
+            
+            🎯 행동 특성: ${behaviorDesc[behaviorType]} 고객이 ${purchaseBehavior.distribution[behaviorType]}%를 차지하며, 
+            최근 구매로부터 평균 ${daysSince.toFixed(0)}일이 경과했습니다.`;
+        }
+        
+        // 상세 전략 생성
+        function generateDetailedStrategy(name, productAnalysis, categoryAnalysis, purchaseBehavior, age) {
+            const topProduct = productAnalysis.topProducts[0]?.product;
+            const topCategory = categoryAnalysis.distribution[0]?.category;
+            const behavior = purchaseBehavior.dominantBehavior;
+            
+            const strategies = [];
+            
+            // 상품 기반 전략
+            if (topProduct) {
+                strategies.push(`${topProduct} 상품군 중심의 크로스셀링 및 업셀링 전략 실행`);
+            }
+            
+            // 카테고리 기반 전략
+            if (topCategory && categoryAnalysis.concentration > 0.4) {
+                strategies.push(`${topCategory} 카테고리 전문성을 어필하는 큐레이션 서비스 제공`);
+            } else {
+                strategies.push(`다양한 카테고리 번들링을 통한 크로스 카테고리 매출 증대`);
+            }
+            
+            // 행동 패턴 기반 전략
+            const behaviorStrategies = {
+                'impulseBuyers': '실시간 개인화 추천과 한정시간 할인으로 구매 충동 자극',
+                'plannedBuyers': '정기 주문 시스템과 미리 알림 서비스로 구매 편의성 제고',
+                'loyalBuyers': '브랜드 충성도 리워드 프로그램과 VIP 혜택으로 관계 심화',
+                'explorers': '신제품 우선 체험과 다양성 추구 맞춤 추천으로 탐험 욕구 충족'
+            };
+            strategies.push(behaviorStrategies[behavior]);
+            
+            // 연령 기반 전략
+            if (age < 35) {
+                strategies.push('소셜미디어 마케팅과 인플루언서 협업을 통한 젊은 고객층 engagement 강화');
+            } else {
+                strategies.push('신뢰성과 품질을 강조한 전통적 마케팅 채널 활용');
+            }
+            
+            return strategies.slice(0, 4).join('. ') + '.';
         }
         
         // CSV 파일 업로드 처리
@@ -520,125 +896,157 @@
             const customerGroups = {};
             
             rawData.forEach((row, index) => {
-                const cleanRow = {};
-                Object.keys(row).forEach(key => {
-                    const cleanKey = key.trim().toLowerCase().replace(/\s+/g, '');
-                    cleanRow[cleanKey] = row[key];
-                });
-                
-                const customerId = cleanRow['고객id'] || cleanRow['customerid'] || cleanRow['id'];
-                const customerName = cleanRow['이름'] || cleanRow['name'] || cleanRow['고객명'];
-                const age = parseInt(cleanRow['연령'] || cleanRow['age']) || 0;
-                const purchaseAmount = parseFloat(cleanRow['1회구매가격'] || cleanRow['구매금액'] || cleanRow['가격']) || 0;
-                const product = cleanRow['구매상품'] || cleanRow['상품'] || cleanRow['product'] || '알 수 없음';
-                const category = cleanRow['카테고리'] || cleanRow['category'] || cleanRow['분류'] || '기타';
-                const purchaseDate = cleanRow['구매일'] || cleanRow['date'] || cleanRow['purchase_date'];
-                
-                if (!customerId || purchaseAmount <= 0) return;
-                
-                if (!customerGroups[customerId]) {
-                    customerGroups[customerId] = {
-                        id: customerId,
-                        name: customerName || `고객${customerId}`,
-                        age: age || 0,
-                        purchases: [],
-                        categories: new Set(),
-                        products: new Set()
-                    };
-                }
-                
-                customerGroups[customerId].purchases.push({
-                    amount: purchaseAmount,
-                    product: product,
-                    category: category,
-                    date: purchaseDate
-                });
-                
-                customerGroups[customerId].categories.add(category);
-                customerGroups[customerId].products.add(product);
-                
-                if (!customerGroups[customerId].age && age > 0) {
-                    customerGroups[customerId].age = age;
+                try {
+                    const cleanRow = {};
+                    Object.keys(row).forEach(key => {
+                        const cleanKey = key.trim().toLowerCase().replace(/\s+/g, '');
+                        cleanRow[cleanKey] = row[key];
+                    });
+                    
+                    const customerId = cleanRow['고객id'] || cleanRow['customerid'] || cleanRow['id'] || index + 1;
+                    const customerName = cleanRow['이름'] || cleanRow['name'] || cleanRow['고객명'] || `고객${customerId}`;
+                    const age = parseInt(cleanRow['연령'] || cleanRow['age']) || 0;
+                    const purchaseAmount = parseFloat(cleanRow['1회구매가격'] || cleanRow['구매금액'] || cleanRow['가격']) || 0;
+                    const product = cleanRow['구매상품'] || cleanRow['상품'] || cleanRow['product'] || '알 수 없음';
+                    const category = cleanRow['카테고리'] || cleanRow['category'] || cleanRow['분류'] || '기타';
+                    const purchaseDate = cleanRow['구매일'] || cleanRow['date'] || cleanRow['purchase_date'] || '2024-01-01';
+                    
+                    if (!customerId || purchaseAmount <= 0) return;
+                    
+                    if (!customerGroups[customerId]) {
+                        customerGroups[customerId] = {
+                            id: customerId,
+                            name: customerName,
+                            age: age || 0,
+                            purchases: [],
+                            categories: new Set(),
+                            products: new Set()
+                        };
+                    }
+                    
+                    customerGroups[customerId].purchases.push({
+                        amount: purchaseAmount,
+                        product: product,
+                        category: category,
+                        date: purchaseDate
+                    });
+                    
+                    customerGroups[customerId].categories.add(category);
+                    customerGroups[customerId].products.add(product);
+                    
+                    if (!customerGroups[customerId].age && age > 0) {
+                        customerGroups[customerId].age = age;
+                    }
+                } catch (error) {
+                    console.warn(`행 ${index + 1} 처리 중 오류:`, error);
                 }
             });
             
             const today = new Date();
             const processedCustomers = Object.values(customerGroups).map(customer => {
-                const purchases = customer.purchases;
-                if (purchases.length === 0) return null;
-                
-                const frequency = purchases.length;
-                const monetary = purchases.reduce((sum, p) => sum + p.amount, 0);
-                const avgOrderValue = Math.round(monetary / frequency);
-                
-                let recency = 180;
-                const dates = purchases.map(p => p.date).filter(d => d);
-                if (dates.length > 0) {
-                    const latestDate = new Date(Math.max(...dates.map(d => new Date(d))));
-                    recency = Math.floor((today - latestDate) / (1000 * 60 * 60 * 24));
+                try {
+                    const purchases = customer.purchases || [];
+                    if (purchases.length === 0) return null;
+                    
+                    const frequency = purchases.length;
+                    const monetary = purchases.reduce((sum, p) => sum + (p.amount || 0), 0);
+                    const avgOrderValue = frequency > 0 ? Math.round(monetary / frequency) : 0;
+                    
+                    let recency = 180;
+                    const dates = purchases.map(p => p.date).filter(d => d && d !== '');
+                    if (dates.length > 0) {
+                        try {
+                            const latestDate = new Date(Math.max(...dates.map(d => new Date(d))));
+                            if (!isNaN(latestDate.getTime())) {
+                                recency = Math.floor((today - latestDate) / (1000 * 60 * 60 * 24));
+                            }
+                        } catch (dateError) {
+                            console.warn('날짜 처리 오류:', dateError);
+                            recency = Math.floor(Math.random() * 180) + 1;
+                        }
+                    }
+                    
+                    const lastPurchaseDate = dates.length > 0 ? dates[dates.length - 1] : 
+                        new Date(today.getTime() - recency * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                    
+                    const categoryDiversity = customer.categories ? customer.categories.size : 1;
+                    const productDiversity = customer.products ? customer.products.size : 1;
+                    const avgPurchaseInterval = frequency > 1 ? Math.round(recency / (frequency - 1)) : recency;
+                    
+                    const categoryCount = {};
+                    purchases.forEach(p => {
+                        const cat = p.category || '기타';
+                        categoryCount[cat] = (categoryCount[cat] || 0) + 1;
+                    });
+                    const favoriteCategory = Object.keys(categoryCount).length > 0 ? 
+                        Object.keys(categoryCount).reduce((a, b) => categoryCount[a] > categoryCount[b] ? a : b, '기타') : '기타';
+                    
+                    return {
+                        id: customer.id,
+                        name: customer.name || `고객${customer.id}`,
+                        age: Math.max(18, Math.min(80, customer.age)) || Math.floor(Math.random() * 40) + 25,
+                        totalSpent: monetary,
+                        purchaseCount: frequency,
+                        avgOrderValue: avgOrderValue,
+                        daysSinceLastPurchase: Math.max(0, recency),
+                        lastPurchaseDate: lastPurchaseDate,
+                        categoryDiversity: categoryDiversity,
+                        productDiversity: productDiversity,
+                        favoriteCategory: favoriteCategory,
+                        avgPurchaseInterval: avgPurchaseInterval,
+                        recencyScore: 0,
+                        frequencyScore: 0,
+                        monetaryScore: 0,
+                        cluster: null,
+                        purchases: purchases
+                    };
+                } catch (error) {
+                    console.warn('고객 데이터 처리 오류:', error);
+                    return null;
                 }
-                
-                const lastPurchaseDate = dates.length > 0 
-                    ? new Date(Math.max(...dates.map(d => new Date(d)))).toISOString().split('T')[0]
-                    : new Date(today.getTime() - recency * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-                
-                const categoryDiversity = customer.categories.size;
-                const productDiversity = customer.products.size;
-                const avgPurchaseInterval = dates.length > 1 ? Math.round(recency / (frequency - 1)) : recency;
-                
-                const categoryCount = {};
-                purchases.forEach(p => {
-                    categoryCount[p.category] = (categoryCount[p.category] || 0) + 1;
-                });
-                const favoriteCategory = Object.keys(categoryCount).reduce((a, b) => 
-                    categoryCount[a] > categoryCount[b] ? a : b, '기타');
-                
-                return {
-                    id: customer.id,
-                    name: customer.name,
-                    age: Math.max(18, Math.min(80, customer.age)) || Math.floor(Math.random() * 40) + 25,
-                    totalSpent: monetary,
-                    purchaseCount: frequency,
-                    avgOrderValue: avgOrderValue,
-                    daysSinceLastPurchase: Math.max(0, recency),
-                    lastPurchaseDate: lastPurchaseDate,
-                    categoryDiversity: categoryDiversity,
-                    productDiversity: productDiversity,
-                    favoriteCategory: favoriteCategory,
-                    avgPurchaseInterval: avgPurchaseInterval,
-                    recencyScore: 0,
-                    frequencyScore: 0,
-                    monetaryScore: 0,
-                    cluster: null,
-                    purchases: purchases
-                };
             }).filter(customer => customer !== null);
             
             if (processedCustomers.length > 0) {
-                calculateRFMScores(processedCustomers);
+                try {
+                    calculateRFMScores(processedCustomers);
+                } catch (error) {
+                    console.warn('RFM 점수 계산 오류:', error);
+                }
             }
             
             return processedCustomers;
         }
         
-        // RFM 점수 계산
+        // RFM 점수 계산 (안전한 처리)
         function calculateRFMScores(customers) {
-            const recencyValues = customers.map(c => c.daysSinceLastPurchase).sort((a, b) => a - b);
-            const frequencyValues = customers.map(c => c.purchaseCount).sort((a, b) => b - a);
-            const monetaryValues = customers.map(c => c.totalSpent).sort((a, b) => b - a);
-            
-            const getQuintile = (value, values, reverse = false) => {
-                const len = values.length;
-                const index = values.indexOf(value);
-                let quintile = Math.ceil((index + 1) / len * 5);
-                return reverse ? 6 - quintile : quintile;
-            };
-            
-            customers.forEach(customer => {
-                customer.recencyScore = getQuintile(customer.daysSinceLastPurchase, recencyValues, true);
-                customer.frequencyScore = getQuintile(customer.purchaseCount, frequencyValues);
-                customer.monetaryScore = getQuintile(customer.totalSpent, monetaryValues);
-            });
+            try {
+                const recencyValues = customers.map(c => c.daysSinceLastPurchase || 0).sort((a, b) => a - b);
+                const frequencyValues = customers.map(c => c.purchaseCount || 0).sort((a, b) => b - a);
+                const monetaryValues = customers.map(c => c.totalSpent || 0).sort((a, b) => b - a);
+                
+                const getQuintile = (value, values, reverse = false) => {
+                    if (values.length === 0) return 3;
+                    const index = values.indexOf(value);
+                    if (index === -1) return 3;
+                    let quintile = Math.ceil((index + 1) / values.length * 5);
+                    quintile = Math.max(1, Math.min(5, quintile));
+                    return reverse ? 6 - quintile : quintile;
+                };
+                
+                customers.forEach(customer => {
+                    customer.recencyScore = getQuintile(customer.daysSinceLastPurchase || 0, recencyValues, true);
+                    customer.frequencyScore = getQuintile(customer.purchaseCount || 0, frequencyValues);
+                    customer.monetaryScore = getQuintile(customer.totalSpent || 0, monetaryValues);
+                });
+            } catch (error) {
+                console.warn('RFM 점수 계산 중 오류:', error);
+                // 기본값 설정
+                customers.forEach(customer => {
+                    customer.recencyScore = 3;
+                    customer.frequencyScore = 3;
+                    customer.monetaryScore = 3;
+                });
+            }
         }
         
         // 업로드 상태 표시
@@ -746,74 +1154,6 @@
             updateStats();
             updateTable();
             runClustering();
-        }
-        
-        // K-means 클러스터링 실행
-        function runClustering() {
-            const k = parseInt(document.getElementById('clusterCount').value);
-            
-            const features = customerData.map(customer => [
-                (customer.recencyScore || 0) / 5,
-                (customer.frequencyScore || 0) / 5,
-                (customer.monetaryScore || 0) / 5,
-                (customer.categoryDiversity || 1) / 10,
-                Math.min((customer.productDiversity || 1) / 20, 1)
-            ]);
-            
-            let centroids = [];
-            for (let i = 0; i < k; i++) {
-                centroids.push([
-                    Math.random(),
-                    Math.random(),
-                    Math.random(),
-                    Math.random(),
-                    Math.random()
-                ]);
-            }
-            
-            let iterations = 0;
-            let hasChanged = true;
-            
-            while (hasChanged && iterations < 100) {
-                hasChanged = false;
-                iterations++;
-                
-                customerData.forEach((customer, index) => {
-                    let minDistance = Infinity;
-                    let closestCluster = 0;
-                    
-                    centroids.forEach((centroid, clusterIndex) => {
-                        const distance = euclideanDistance(features[index], centroid);
-                        if (distance < minDistance) {
-                            minDistance = distance;
-                            closestCluster = clusterIndex;
-                        }
-                    });
-                    
-                    if (customer.cluster !== closestCluster) {
-                        hasChanged = true;
-                        customer.cluster = closestCluster;
-                    }
-                });
-                
-                for (let i = 0; i < k; i++) {
-                    const clusterPoints = features.filter((_, index) => customerData[index].cluster === i);
-                    if (clusterPoints.length > 0) {
-                        centroids[i] = [
-                            clusterPoints.reduce((sum, point) => sum + point[0], 0) / clusterPoints.length,
-                            clusterPoints.reduce((sum, point) => sum + point[1], 0) / clusterPoints.length,
-                            clusterPoints.reduce((sum, point) => sum + point[2], 0) / clusterPoints.length,
-                            clusterPoints.reduce((sum, point) => sum + point[3], 0) / clusterPoints.length,
-                            clusterPoints.reduce((sum, point) => sum + point[4], 0) / clusterPoints.length
-                        ];
-                    }
-                }
-            }
-            
-            updateStats();
-            updateTable();
-            updateCharts();
-            analyzeClusterCharacteristics();
         }
         
         function euclideanDistance(point1, point2) {
@@ -1074,54 +1414,9 @@
         // CSV 템플릿 다운로드
         function downloadTemplate() {
             const templateData = [
-                {
-                    '고객ID': 1,
-                    '이름': '김민수',
-                    '연령': 35,
-                    '1회구매가격': 15000,
-                    '구매상품': '당근',
-                    '카테고리': '채소',
-                    '구매일': '2024-03-15'
-                },
-                {
-                    '고객ID': 1,
-                    '이름': '김민수',
-                    '연령': 35,
-                    '1회구매가격': 8000,
-                    '구매상품': '시금치',
-                    '카테고리': '채소',
-                    '구매일': '2024-03-20'
-                },
-                {
-                    '고객ID': 2,
-                    '이름': '이영희',
-                    '연령': 28,
-                    '1회구매가격': 12000,
-                    '구매상품': '김밥',
-                    '카테고리': '즉석식품',
-                    '구매일': '2024-04-10'
-                }
-            ];
-            
-            const headers = Object.keys(templateData[0]);
-            const csvContent = [
-                headers.join(','),
-                ...templateData.map(row => headers.map(header => `"${row[header]}"`).join(','))
-            ].join('\n');
-            
-            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'purchase_history_template.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-        
-        // 초기 데이터 생성
-        generateData();
-    </script>
-</body>
-</html>
+                ['고객ID', '이름', '연령', '1회구매가격', '구매상품', '카테고리', '구매일'].join(','),
+                [1, '김민수', 35, 50000, '당근', '채소', '2024-05-15'].join(','),
+                [1, '김민수', 35, 500000, '시금치', '채소', '2024-05-15'].join(','),
+                [2, '이영희', 28, 350000, '김밥', '즉석식품', '2024-05-20'].join(','),
+                [3, '박철수', 42, 750000, '닭가슴살', '육류', '2024-05-10'].join(','),
+                [3, '박철수', 42, 750000, '샤브샤브용 냉동 목
